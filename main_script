@@ -1,0 +1,296 @@
+!pip install discord.py
+!pip install nest_asyncio 
+import nest_asyncio 
+nest_asyncio.apply()
+
+
+import discord
+import random
+
+intents = discord.Intents.all()
+intents.messages = True
+intents.members = True
+intents.typing = True
+client = discord.Client(intents=intents)
+
+# Indique le statut/activité du bot en tant que "!commands" pour expliquer comment utiliser le bot + indique que le bot est prêt dans la console
+@client.event
+async def on_ready():
+  await client.change_presence(activity=discord.Game(name="!commands 🧽"))
+  print("Le bot est prêt !")
+
+# Envoie un msg dans le channel general quand un membre rejoint le serveur
+@client.event
+async def on_member_join(member):
+  general_channel = client.get_channel(1044900336806137909)
+  await general_channel.send("HELLOOOOO " + member.name + " bienvenue et fais comme chez toi gros bgg! \n Voici les principales commandes auxquelles je peux répondre : \n***!play*** pour lancer le jeu \n***!hint*** pour demander un indice \n***!score*** pour demander ton score actuel \n***!restart*** pour recommencer le jeu à tout moment \n !stop pour arrêter  le jeu \n***!commands*** pour voir les commandes \n Amuses toi bien!")
+  await general_channel.send("https://tenor.com/view/spongebob-welcome-happy-rainbow-gif-15830260")
+
+# Envoie un message dans le channel general quand un membre quitte le serveur
+@client.event
+async def on_member_remove(member) :
+  general_channel = client.get_channel(1044900336806137909)
+  await general_channel.send("DEHOOOOOOOORS " + member.name + " !!!")
+  await general_channel.send("https://tenor.com/view/dehors-gif-20221373")
+
+
+# Fonction comportant le jeu
+@client.event
+async def on_message(message):
+  if message.author == client.user :
+    return
+
+  message.content = message.content.lower()
+
+  # Envoie un message et un GIF dans le tchat quand l'utilisateur utilise la commande "!commands"
+  if "!commands" in message.content :
+
+    await message.channel.send("HELLOOO!!")
+    await message.channel.send("https://tenor.com/view/hi-patrick-star-gif-20016540")
+    await message.channel.send("Voici les commandes : \n***!start*** pour lancer le jeu \n***!hint*** pour demander un indice \n***!score*** pour demander ton score actuel \n***!restart*** pour recommencer le jeu \n***!stop*** pour arrêter le jeu \n***!commands*** pour voir les commandes \n On a aussi de la musique parce qu'on est pas n'importe qui. \nVoici les commandes :\n***!play*** suivi du lien de la video youtube que tu veux écouter pour lancer la musique dans le salon vocal \n***!pause*** pour mettre la musique en pause \n***!resume*** pour relancer la musique \n***!skip*** pour arrêter la musique \n Amuses toi bien!")
+
+
+  # Le quizz devient fonctionnel quand l'utilisateur utilise la commande "!play, les règles lui sont alors expliquées"
+  if message.content == "!start" :
+
+    await message.channel.send("Le jeu est lancé. \nBienvenue dans ce quizz. \nLes règles sont simples : \nChoisis le niveau de difficulté et la catégorie de ton choix. \nRéponds ensuite à la série d'énigmes qui t'est proposée. \nChaque bonne réponse te procure 10 points. \nTu perds cependant 5 points chaque fois que tu demandes un indice. \n__Veilles à bien écrire tous tes messages en minuscules (et sans déterminant😀)__. \nEcris ***prêt*** pour commencer!")
+    await message.channel.send("https://tenor.com/view/spongebob-ready-work-determine-im-ready-gif-5294651") #https://media.giphy.com/media/l1Aswx03WbLDf9kYw/giphy.gif
+    rep_user = await client.wait_for("message")
+    
+    rep_user.content = rep_user.content.lower()
+
+    # Boucle qui permet d'attendre un nouveau message de l'utilisateur tant qu'il écrit autre chose que "prêt" dans le tchat
+    while rep_user.content != "prêt" :
+      await message.channel.send("Attend wsh commence le jeu déjà frr. \nTu veux pas jouer c'est ça :'( \nstpppp écris ***prêt*** sinon je pleure..")
+      rep_user = await client.wait_for("message")
+     
+
+    # Le reste du programme est enclenché une fois que "prêt" est envoyé dans le tchat
+    if rep_user.content == "prêt" :
+
+      # On définit un compteur "i", le score initial, et la variable "question" à laquelle on affecte la valeur None pour le moment
+      i = 0
+      question = None
+      score = 0
+
+      # L'utilisateur choisit parmis 3 niveaux de difficulté proposés
+      await message.channel.send("Choisis un niveau de difficulté : \ndébutant \nintermédiaire \nexpert")
+      rep_user = await client.wait_for("message")
+
+      while rep_user.content != "débutant" and rep_user.content != "intermédiaire" and rep_user.content != "expert" :
+        rep_user = await client.wait_for("message")
+
+      # On définit la liste "enigmes" et les dictionnaires "reponse" et "indices" qui correspondent selon le niveau de difficulté et selon la catégorie séléctionnée
+      if rep_user.content == "débutant" :
+
+        await message.channel.send("Choisis une catégorie : \nhistoire-géographie \nlogique \ndivers")
+        rep_user = await client.wait_for("message")
+
+
+        if rep_user.content == "histoire-géographie" :
+          enigme1 = "Je suis un pays mais je suis également le nom d'une épice."
+          enigme2 = "Pays ayant inspiré le nom d'une célèbre salade."
+          enigme3 = "Quelle ville est aussi un fruit?"
+          enigme4 = "Lequel de ces pays ne paye pas en Euro? \nSlovénie \nFinlande \nSuède \nMonaco"
+          enigme5 = "Dans quel continent se trouve le Brésil? \nAmérique du Nord \nEurope \nAfrique du Sud \nAmérique du Sud"
+
+          enigmes = [enigme1,enigme2,enigme3,enigme4,enigme5]
+          reponse = { enigme1: "chili", enigme2: "macédoine", enigme3: "grenade", enigme4: "suède", enigme5: "amérique du sud" }
+          indices = { enigme1: "Penses à un plat populaire au nom composé", enigme2: "Nom de famille d'un célèbre Alexandre", enigme3: "C'est un fruit à grains", enigme4: "Le seul pays qui ne fait pas partie de l'Union Européenne", enigme5: "Le Brésil et le Portugal c'est pas la même chose" }
+
+        elif rep_user.content == "logique" :
+          enigme1 = "Quels sont les 3 nombres qui mènent au même résultat qu'ils soient additionnés ou multipliés?"
+          enigme2 = "Quel lien de parenté existe-t-il entre moi et le frère de mon père ?"
+          enigme3 = "Ma mère a 4 enfants. Nord, Sud, Est et?"
+          enigme4 = "Qu'est-ce qui monte et descend sans bouger?"
+          enigme5 = "Dans le ciel je suis 1, sur Terre je suis 2."          
+
+          enigmes = [enigme1,enigme2,enigme3,enigme4,enigme5]
+          reponse = { enigme1: "123", enigme2: "oncle", enigme3: "moi", enigme4: "escalier", enigme5: "e" }
+          indices = { enigme1: "Ce sont des chiffres", enigme2: "Ma grand mère est la mère du frère de mon père", enigme3: "Relis la question", enigme4: "Oublies l'ascenceur", enigme5: "La réponse se trouve dans les mots" }
+
+        elif rep_user.content == "divers" :
+          enigme1 = "Trois poissons sont dans un seau, l'un meurt, combien en reste t-il ?"
+          enigme2 = "Je ne peux exister sans lumière mais je disparais très rapidemment à la vue de celle-ci."
+          enigme3 = "Qu'est-ce qui doit être cassé pour être utile?"
+          enigme4 = "Il nous voit vieillir sans rien dire car il est très poli."
+          enigme5 = "Marco?"
+
+          enigmes = [enigme1,enigme2,enigme3,enigme4,enigme5]
+          reponse = { enigme1: "3", enigme2: "ombre", enigme3: "oeuf", enigme4: "mirroir", enigme5: "polo" }
+          indices = { enigme1: "Il faut réfléchir un peu frère", enigme2: "Seul Lucky Luke est plus rapide que moi", enigme3: "On en mange le matin", enigme4: "Le monde y est inversé", enigme5: "Penses à un sport aquatique" }
+
+
+      elif rep_user.content == "intermédiaire" :
+
+        await message.channel.send("Choisis une catégorie : \nhistoire-géographie \nlogique \ndivers")
+        rep_user = await client.wait_for("message")
+
+        if rep_user.content == "histoire-géographie" :
+          enigme1 = "Quel prénom ne figure pas dans la famille royale d'Angleterre ? \nCharles \nLouis \nHenry \nPhilip"
+          enigme2 = "Quel pays n'est pas un pays anglophone? \nAustralie \nNouvelle-Zélande \nEcosse \nPays-Bas"
+          enigme3 = "Quel pays n'est pas un pays anglosaxon? \nEcosse \nCanada \nMalaisie \nEtats-Unis"
+          enigme4 = "Quel est le seul monument de l'antiquité aujourd'hui encore en état faisant partie des Merveilles du monde ? \nPyramides de Gizeh \nGrande mosquée d'Istanbul \nStatuts de l'Ile de Pâques \nTemple d'Angkor"
+          enigme5 = "Je suis un roi français, adoré par mes sujets pour avoir rendu sa grandeur à la France"
+
+          enigmes = [enigme1,enigme2,enigme3,enigme4,enigme5]
+          reponse = { enigme1: "louis", enigme2: "pays-bas", enigme3: "malaisie", enigme4: "pyramides de gizeh", enigme5: "louis XIV" }
+          indices = { enigme1: "L'intrus est un prénom de royauté français", enigme2: "Un pays anglophone est un pays où l'une des langues maternelles est l'anglais", enigme3: "Un pays anglosaxon est un pays où les habitants originels descendent de la civilisation britannique", enigme4: "Il est localisé en Egypte", enigme5: "J'ai été surnommé après le soleil" }
+
+        elif rep_user.content == "logique" :
+          enigme1 = "Quel mois de l'année compte 28 jours?"
+          enigme2 = "Il y en a 2 dans 1, 4 dans 2, 6 dans 3, et 8 dans 4. "
+          enigme3 = "Un train électrique roule vers l'ouest vers où va la fumer?"
+          enigme4 = "Un père et un fils ont à eux deux 36 ans. Sachant que le père a 30 ans de plus que le fils, quel âge a le fils?"
+          enigme5 = "Quelle lettre passe de consonne à voyelle en se retournant?"
+
+          enigmes = [enigme1,enigme2,enigme3,enigme4,enigme5]
+          reponse = { enigme1: "tous", enigme2: "moitié", enigme3: "il n'y a pas de fumée", enigme4: "3 ans", enigme5: "n" }
+          indices = { enigme1: "Je t'invite à prendre une feuille et à calculer le nombre de jours qu'il y a dans 1 mois", enigme2: "Division", enigme3: "Batterie", enigme4: "Le père a plus de 30 ans", enigme5: "10 lettres après D" }
+
+        elif rep_user.content == "divers" :
+          enigme1 = "Très discrète dans l’océan, je brille de mille feux dans le ciel."
+          enigme2 = "On me demande, me poursuit, me perd, et me passe."
+          enigme3 = "Je te suis dans chaque bâtiment où tu te rends sans pourtant jamais bouger."
+          enigme4 = "Qu'est-ce qui grandit sans vie, a besoin d'oxygène sans poumons, et qui meurt sous l'eau?"
+          enigme5 = "Je suis chaud quand je suis frais."
+
+          enigmes = [enigme1,enigme2,enigme3,enigme4,enigme5]
+          reponse = { enigme1: "étoile", enigme2: "chemin", enigme3: "mur", enigme4: "feu", enigme5: "pain" }
+          indices = { enigme1: "Les gens me confient parfois leurs souhaits", enigme2: "Celui que l'on suit pour rejoindre un lieu", enigme3: "Je me prends souvent une patate quand quelqu'un s'énerve", enigme4: "Indispensable pour la cuisson d'aliment/Découverte qui a bouleversé l'Humanité", enigme5: "Synonyme de souffrance en anglais/Ami du boulanger" }
+
+
+      elif rep_user.content == "expert" :
+
+        await message.channel.send("Choisis une catégorie : \nhistoire-géographie \nlogique \ndivers")
+        rep_user = await client.wait_for("message")
+
+        if rep_user.content == "histoire-géographie" :
+          enigme1 = "Quel est le plus petit pays du monde?"
+          enigme2 = "Quand a été construit la Tour Eiffel?"
+          enigme3 = "Qui est le plus grand savant du monde?"
+          enigme4 = "Quel est le pays le plus pauvre du monde?"
+          enigme5 = "Dans quel pays d'Afrique neige t-il le plus?"
+
+          enigmes = [enigme1,enigme2,enigme3,enigme4,enigme5]
+          reponse = { enigme1: "vatican", enigme2: "28 janvier 1887", enigme3: "albert einstein", enigme4: "burundi", enigme5: "lesotho" }
+          indices = { enigme1: "Pays du pape", enigme2: "Visiblement tu n'es pas un expert, vas sur internet", enigme3: "Franck ?", enigme4: "Pareil, t'es pas un expert, vas sur internet (on a plus d'inspi).", enigme5: "Pays d'Afrique du Sud (Étonnant hein ? Je sais" }
+
+        elif rep_user.content == "logique" :
+          enigme1 = "C'est le jour de paye. La poule reçoit 7 euros. L'abeille reçoit 21 euros. L'araignée reçoit 28 euros. Combien reçoit le chien ?"
+          enigme2 = "Plus j'ai de gardiens, moins je suis gardé. Moins j'ai de gardiens, plus je suis gardé."
+          enigme3 = "Otez-moi une lettre, ôtez-moi en 2, ôtez-moi les toutes, je suis toujours le même."
+          enigme4 = "Je parle sans bouche et j'entends sans oreilles. Je n'ai pas de corps, mais je m'anime grâce au vent."
+          enigme5 = "J'ai des villes, mais pas de maisons. J'ai des montagnes, mais pas d'arbres. J'ai de l'eau, mais pas de poissons."
+
+          enigmes = [enigme1,enigme2,enigme3,enigme4,enigme5]
+          reponse = { enigme1: "14 euros", enigme2: "secret", enigme3: "facteur", enigme4: "écho", enigme5: "carte" }
+          indices = { enigme1: "Pattes", enigme2: "Bouche cousue", enigme3: "La poste", enigme4: "Quand je parle ce n'est pas qu'une seule fois", enigme5: "Je suis plat" }
+
+        elif rep_user.content == "divers" :
+          enigme1 = "Petite plante violacée, elle nous obsède sans arrêt."
+          enigme2 = "Sans ailes, je vole. Sans yeux, je pleure. Où que j'aille, l'obscurité me poursuit."
+          enigme3 = "Je ne suis pas un arbre mais je perds presque toutes mes feuilles quand vient l'hiver."
+          enigme4 = "What else?"
+          enigme5 = "Tu mesures ma vie en heures et je te sers en expirant. Je suis rapide quand je suis mince et lente quand je suis grosse. Le vent est mon ennemi. "
+
+          enigmes = [enigme1,enigme2,enigme3,enigme4,enigme5]
+          reponse = { enigme1: "pensée", enigme2: "nuage", enigme3: "calendrier", enigme4: "nespresso", enigme5: "bougie" }
+          indices = { enigme1: "C'est aussi un verbe", enigme2: "Je peux prendre n'importe quelle forme selon l'imagination de celui qui me regarde", enigme3: "Le truc que t'achètes aux pompiers qui sonnent chez toi alors que tu comptes pas l'utiliser", enigme4: "George Clooney", enigme5: "Parfois je sens très bon, parfois je suis inodore" }
+
+
+      while i < 5 :
+
+        question = random.choice(enigmes)
+        await message.channel.send(question)
+        rep_user = await client.wait_for("message")
+
+        if rep_user.content == "!score" :
+
+          await message.channel.send("Votre score actuel est de :" + str(score) + "points.")
+          rep_user = await client.wait_for("message")
+
+        if rep_user.content == "!hint" :
+
+          await message.channel.send(indices[question])
+          rep_user = await client.wait_for("message")
+          score = score - 5
+
+          if rep_user.content == "!score" :
+            await message.channel.send("Votre score actuel est de :" + str(score) + "points.")
+            rep_user = await client.wait_for("message")
+
+        if rep_user.content == "!restart" :
+
+          score = 0
+          i = 0
+          enigmes = [enigme1,enigme2,enigme3,enigme4,enigme5]
+          await message.channel.send("Le jeu recommence.")
+          continue
+
+
+        while rep_user.content != reponse[question] and rep_user.content != "!restart" :
+
+          await message.channel.send("Faux! Essayes encore.")
+          rep_user = await client.wait_for("message")
+
+          if rep_user.content == "!score" :
+              await message.channel.send("Votre score actuel est de :" + str(score) + "points.")
+              rep_user = await client.wait_for("message")
+
+          if rep_user.content == "!hint" :
+              await message.channel.send(indices[question])
+              rep_user = await client.wait_for("message")
+              score = score - 5
+
+              if rep_user.content == "!score" :
+                await message.channel.send("Votre score actuel est de :" + str(score) + "points.")
+                rep_user = await client.wait_for("message")
+                    
+          if rep_user.content == "!restart" :
+            score = 0
+            i = 0
+            enigmes = [enigme1,enigme2,enigme3,enigme4,enigme5]
+            await message.channel.send("Le jeu recommence.")
+            continue
+
+        if rep_user.content == reponse[question] :
+
+          await message.channel.send("Bravo! C'est la bonne réponse ! Étonnamment...")
+          await message.channel.send("https://tenor.com/view/nice-gif-21458880")
+          enigmes.remove(question)
+          score = score + 10
+
+          if i < 4 :       
+            await message.channel.send("Voici la prochaine enigme:")
+            
+        i = i + 1
+
+      await message.channel.send("Vous avez répondu à toutes les énigmes.")
+      await message.channel.send("https://tenor.com/view/jay-gg-thumbs-up-okay-ok-approve-gif-15456848")
+
+      if score <= 0   :
+        await message.channel.send("Tu as " + str(score) +" points sur 50" + ":\nJe m'attendais à rien mais je suis quand même décu.e. \nC'est quand même très grave d'être bête comme ça... \nSinon GG hein t'as fini le jeu. \nTu gagnes : rien du tout désolé le budget est parti dans le salaire des devs :/ ")
+
+      elif score  > 0 and score <= 10 :
+        await message.channel.send("Tu as " + str(score) +" points sur 50" + "\nMouais...bon \nEn vrai ça se voit que t'es pas très brillant donc je m'attendais pas à grand chose. \nSinon GG hein t'as fini le jeu. \nTu gagnes : rien du tout désolé le budget est parti dans le salaire des devs :/ ")
+
+      elif score > 10 and score <= 20 :
+        await message.channel.send("Tu as " + str(score) +" points sur 50" + "\nT'es vraiment l'idiot du village. \nT'es content ? \nPour de vrai ? \nTu trouves vraiment que c'est un bon score ? \nBon bah écoute...  \nSinon GG hein t'as fini le jeu. \nTu gagnes : rien du tout désolé le budget est parti dans le salaire des devs :/ ")
+        
+      elif score > 20 and score <= 30 :
+        await message.channel.send("Tu as " + str(score) +" points sur 50" + "\nPas mal, pas mal. \nMais pas ouf non plus, t'es pas le couteau le plus aiguisé du tiroir je vais pas te mentir. \nSinon GG hein t'as fini le jeu. \nTu gagnes : rien du tout désolé le budget est parti dans le salaire des devs :/ ")
+        
+      elif score > 30 and score <= 40 :
+        await message.channel.send("Tu as " + str(score) +" points sur 50" + "\nAlors qu'est-ce que ça fait d'être un BG ultime ? \nNon je déconne c'est pas exceptionnel non plus comme score. \nSinon GG hein t'as fini le jeu. \nTu gagnes : rien du tout désolé le budget est parti dans le salaire des devs :/")
+        
+      elif score > 40 and score < 50 :
+        await message.channel.send("Tu as " + str(score) +" points sur 50" + "\nStyléééé ma gueule franchement j'suis étonné.e ! \nT'es pas complétement stupide en fait ! \nSinon GG hein t'as fini le jeu. \nTu gagnes : rien du tout désolé le budget est parti dans le salaire des devs :/ ")
+        
+      elif score == 50 :
+        await message.channel.send("Tu as " + str(score) +" points sur 50" + "\nDonc t'es vraiment intelligent en fait, même si je tavoue qu'on dirait pas trop...bref \nSinon GG hein t'as fini le jeu. \nTu gagnes : rien du tout désolé le budget est parti dans le salaire des devs :/ ")
+
+      await message.channel.send("N'hésites pas à relancer le jeu pour rejouer le quizz avec une difficulté ou catégorie différente (ou les 2) \nSigné Bot l'éponge")
+
+
+client.run("") // Ici renseigner votre token
